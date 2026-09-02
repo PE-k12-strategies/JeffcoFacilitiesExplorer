@@ -1,0 +1,28 @@
+{
+  "name": "jeffco-facilities-explorer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "data:build": "py -3 scripts/build-data.py",
+    "dev": "npm run data:build && vite app.html --host",
+    "build": "npm run data:build && vite build",
+    "build:watch": "vite build --watch",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "mapbox-gl": "^3.29.0",
+    "maplibre-gl": "^6.4.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-map-gl": "^8.1.2",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "typescript": "^5.8.3",
+    "vite": "^8.2.2"
+  }
+}

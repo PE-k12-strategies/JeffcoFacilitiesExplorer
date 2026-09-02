@@ -1,0 +1,16 @@
+{
+  "liveServer.settings.port": 5503,
+  "liveServer.settings.file": "index.html",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.donotVerifyTags": true,
+  "liveServer.settings.ignoreFiles": [
+    ".vscode/**",
+    ".git/**",
+    "node_modules/**",
+    "Facility Data/**",
+    "Images/**",
+    "Logos/**",
+    "**/*.map"
+  ],
+  "task.allowAutomaticTasks": "on"
+}
