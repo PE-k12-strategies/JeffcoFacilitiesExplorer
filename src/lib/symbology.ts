@@ -83,7 +83,10 @@ export function metricRange(schools: School[], mode: MapSymbology): { min: numbe
     };
   }
   if (mode === "buildingScore") {
-    return { min: 0.4, max: 1 };
+    return {
+      min: FILTER_SLIDER_BOUNDS.buildingScore.min / 100,
+      max: FILTER_SLIDER_BOUNDS.buildingScore.max / 100,
+    };
   }
   if (mode === "enrollmentChange") {
     const values = schools

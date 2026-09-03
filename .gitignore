@@ -4,8 +4,6 @@ dist
 .env
 .env.local
 *.log
-public/data/schools.json
-public/data/articulation-areas.geojson
 public/logos
 public/images
 

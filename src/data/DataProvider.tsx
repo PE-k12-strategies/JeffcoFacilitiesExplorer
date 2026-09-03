@@ -72,8 +72,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         <h1>Data could not be loaded</h1>
         <p>{error}</p>
         <p className="footnote">
-          Run <code>npm run data:build</code> so local JSON exists in{" "}
-          <code>public/data</code>, then refresh.
+          Run <code>npm run data:build</code> and <code>npx vite build</code> so
+          JSON exists in <code>bundle/data</code>, then refresh.
         </p>
       </div>
     );
