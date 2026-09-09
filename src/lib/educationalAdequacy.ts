@@ -65,3 +65,19 @@ export function emptyEaFactors(): EaFactorScores {
     extendedLearning: null,
   };
 }
+
+/** Buildings that could not be assessed because they were under construction. */
+export const EA_UNAVAILABLE_CONSTRUCTION_IDS = new Set([
+  "CO-1420-9510", // Wheat Ridge High School
+  "CO-1420-5892", // Fletcher Miller Special Education School
+]);
+
+export const EA_UNAVAILABLE_CONSTRUCTION_NOTE =
+  "This building was under construction at the time of data collection, so reviewers could not go inside. Educational Adequacy data was not collected, and a score could not be calculated.";
+
+export function eaUnavailableNote(schoolId: string): string | undefined {
+  if (EA_UNAVAILABLE_CONSTRUCTION_IDS.has(schoolId)) {
+    return EA_UNAVAILABLE_CONSTRUCTION_NOTE;
+  }
+  return undefined;
+}

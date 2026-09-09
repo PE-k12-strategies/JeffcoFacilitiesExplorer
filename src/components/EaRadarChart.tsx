@@ -64,12 +64,14 @@ export function EaRadarChart({
   peerLabel,
   overall,
   compare,
+  unavailableNote,
 }: {
   scores?: EaFactorScores | null;
   averages?: EaFactorScores | null;
   peerLabel?: string;
   overall?: number | null;
   compare?: ReactNode;
+  unavailableNote?: string;
 }) {
   const values = scores ?? emptyEaFactors();
   const peerValues = averages ?? emptyEaFactors();
@@ -101,6 +103,22 @@ export function EaRadarChart({
   const activePeer = hovered == null ? null : peerPlotted[hovered];
   const typeLabel = peerLabel ? `${peerLabel} average` : "Type average";
   const overallLabel = formatPercent(overall);
+
+  if (unavailableNote) {
+    return (
+      <figure className="ea-radar ea-radar-unavailable">
+        <figcaption>
+          Educational adequacy factors
+          <HelpTip label="Educational adequacy">
+            A score for how well the building supports teaching and learning, not
+            how worn it is. Each of the eight factors is one spoke on the chart.
+            Farther from the center means a higher score.
+          </HelpTip>
+        </figcaption>
+        <p className="ea-radar-unavailable-note">{unavailableNote}</p>
+      </figure>
+    );
+  }
 
   return (
     <figure className="ea-radar">

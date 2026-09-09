@@ -28,7 +28,12 @@ import {
   PROJECTED_ENROLLMENT_YEAR_LABEL,
 } from "../lib/districtCharts";
 import { enrollmentView, hasAttendanceArea } from "../lib/enrollmentStats";
-import { EA_FACTORS, emptyEaFactors } from "../lib/educationalAdequacy";
+import {
+  EA_FACTORS,
+  EA_UNAVAILABLE_CONSTRUCTION_IDS,
+  eaUnavailableNote,
+  emptyEaFactors,
+} from "../lib/educationalAdequacy";
 import { peerAverage, peerGroupAbbrev, peerGroupNeedsPhrase, peerSchools, snapshotSchools, totalNeeds } from "../lib/peers";
 import type { School } from "../types";
 
@@ -234,7 +239,7 @@ function SchoolProfile({ school }: { school: School }) {
     const next = emptyEaFactors();
     for (const factor of EA_FACTORS) {
       next[factor.id] = peerAverage(
-        peers,
+        peers.filter((item) => !EA_UNAVAILABLE_CONSTRUCTION_IDS.has(item.id)),
         (item) => item.educationalAdequacyFactors?.[factor.id],
       );
     }
@@ -434,6 +439,7 @@ function SchoolProfile({ school }: { school: School }) {
             peerLabel={groupAbbrev}
             overall={school.educationalAdequacy}
             compare={cmpBoth((item) => item.educationalAdequacy, formatPercent)}
+            unavailableNote={eaUnavailableNote(school.id)}
           />
         </div>
       </section>

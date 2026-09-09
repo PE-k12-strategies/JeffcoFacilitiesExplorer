@@ -1309,6 +1309,19 @@ a.link-strong {
   color: var(--muted);
 }
 
+.ea-radar-unavailable-note {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  margin: 16px 0 8px;
+  max-width: 22rem;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--body);
+}
+
 .age-fci-legend,
 .dyk-chart-legend {
   display: flex;
