@@ -51,10 +51,30 @@ function mixHex(from: string, to: string, t: number): string {
   return `rgb(${mix(0)}, ${mix(1)}, ${mix(2)})`;
 }
 
+const FCI_RAMP = [
+  SYMBOLOGY_DIVERGING_RAMP[2],
+  SYMBOLOGY_DIVERGING_RAMP[1],
+  SYMBOLOGY_DIVERGING_RAMP[0],
+] as const;
+
+/** Raw FCI at or above this value maps to the magenta end of the bar. */
+const FCI_COLOR_CEILING = 0.2;
+
+function mixRamp(ramp: readonly [string, string, string], t: number): string {
+  const clamped = Math.max(0, Math.min(1, t));
+  const [start, mid, end] = ramp;
+  if (clamped <= 0.5) return mixHex(start, mid, clamped / 0.5);
+  return mixHex(mid, end, (clamped - 0.5) / 0.5);
+}
+
 function scoreColor(t: number): string {
-  const [low, mid, high] = SYMBOLOGY_DIVERGING_RAMP;
-  if (t <= 0.5) return mixHex(low, mid, t / 0.5);
-  return mixHex(mid, high, (t - 0.5) / 0.5);
+  return mixRamp(SYMBOLOGY_DIVERGING_RAMP, t);
+}
+
+function fciBarColor(raw: number | null | undefined, share: number): string {
+  const t =
+    raw == null || Number.isNaN(raw) ? 1 - share : raw / FCI_COLOR_CEILING;
+  return mixRamp(FCI_RAMP, t);
 }
 
 function formatFactorValue(id: keyof BuildingScoreValues, value: number | null | undefined): string {
@@ -183,7 +203,12 @@ export function BuildingScoreGauge({
                   className="bar-fill"
                   style={{
                     width: share == null ? "0%" : `${share * 100}%`,
-                    background: share == null ? "transparent" : scoreColor(share),
+                    background:
+                      share == null
+                        ? "transparent"
+                        : factor.id === "fci"
+                          ? fciBarColor(values?.[factor.id], share)
+                          : scoreColor(share),
                   }}
                 />
               </div>
