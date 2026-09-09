@@ -3226,6 +3226,7 @@ a.link-strong {
     flex: none;
     height: auto;
     max-height: none;
+    min-height: 0;
     overflow: hidden;
     border-bottom: 0;
     box-shadow: none;
@@ -3251,11 +3252,14 @@ a.link-strong {
   }
 
   .filter-drawer .filter-grid {
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     min-height: 0;
     min-width: 0;
     flex: 1;
     gap: 6px;
+    padding-right: 2px;
   }
 
   .filter-drawer .school-level-field {

@@ -64,20 +64,20 @@ export function DidYouKnowCarousel() {
   );
 
   const ageFact =
-    "More than half of Jeffco’s school buildings are 50 years or older, and building age is one of the clearest predictors of a building’s condition?";
+    "More than half of Jeffco’s school buildings are 50 years or older, and building age is one of the clearest predictors of a building’s condition.";
   const replaceFact =
     replaceStats.allCost > 0
-      ? `It would cost more than ${moreThanBillions(replaceStats.allCost)} to replace all Jeffco facilities at today’s construction costs, and more than ${moreThanBillions(replaceStats.olderCost)} to replace buildings that are more than 50 years old alone?`
-      : "It would cost more than $6 billion to replace all Jeffco facilities at today’s construction costs, and more than $3 billion to replace buildings that are more than 50 years old alone?";
+      ? `It would cost more than ${moreThanBillions(replaceStats.allCost)} to replace all Jeffco facilities at today’s construction costs, and more than ${moreThanBillions(replaceStats.olderCost)} to replace buildings that are more than 50 years old alone.`
+      : "It would cost more than $6 billion to replace all Jeffco facilities at today’s construction costs, and more than $3 billion to replace buildings that are more than 50 years old alone.";
   const priorityFact =
     projectStats.facilitiesTotal > 0
-      ? `Even with recent investments, there are more than ${moreThanHundredMillions(projectStats.facilitiesTotal)} of priority capital projects identified? These are only projects to address critical building systems and assets.`
-      : "Even with recent investments, there are more than $500 million of priority capital projects identified? These are only projects to address critical building systems and assets.";
+      ? `Even with recent investments, there are more than ${moreThanHundredMillions(projectStats.facilitiesTotal)} of priority capital projects identified. These are only projects to address critical building systems and assets.`
+      : "Even with recent investments, there are more than $500 million of priority capital projects identified. These are only projects to address critical building systems and assets.";
   const enrollFact =
-    "Like districts across Colorado and the nation, Jeffco is experiencing enrollment declines that directly affect school funding, making it more important than ever to be thoughtful about where investment goes?";
+    "Like districts across Colorado and the nation, Jeffco is experiencing enrollment declines that directly affect school funding, making it more important than ever to be thoughtful about where investment goes.";
   const birthFact =
-    "Falling birth rates—not families leaving—are the primary driver of Jeffco’s enrollment decline, and the district still enrolls more than 90% of school-age kids within the district boundary?";
-  const unevenFact = `Enrollment change is not felt evenly across the district, with some areas experiencing significant student loss while others have seen growth since ${HISTORICAL_ENROLLMENT_YEAR}?`;
+    "Falling birth rates—not families leaving—are the primary driver of Jeffco’s enrollment decline, and the district still enrolls more than 90% of school-age kids within the district boundary.";
+  const unevenFact = `Enrollment change is not felt evenly across the district, with some areas experiencing significant student loss while others have seen growth since ${HISTORICAL_ENROLLMENT_YEAR}.`;
 
   function factFor(id: string): ReactNode {
     switch (id) {
@@ -88,7 +88,7 @@ export function DidYouKnowCarousel() {
       case "priority-projects":
         return priorityFact;
       case "educational-adequacy":
-        return "Nearly a third of Jeffco school buildings fall short of modern standards for supporting teaching and learning?";
+        return "Nearly a third of Jeffco school buildings fall short of modern standards for supporting teaching and learning.";
       case "enrollment-decline":
         return enrollFact;
       case "birth-rate":
@@ -96,7 +96,7 @@ export function DidYouKnowCarousel() {
       case "uneven-change":
         return unevenFact;
       case "construction-cost":
-        return "The cost per square foot for building construction and maintenance increases each year in Jeffco, across Colorado, and nationwide, so delaying facility repairs can make them exponentially more expensive?";
+        return "The cost per square foot for building construction and maintenance increases each year in Jeffco, across Colorado, and nationwide, so delaying facility repairs can make them exponentially more expensive.";
       default:
         return "";
     }
