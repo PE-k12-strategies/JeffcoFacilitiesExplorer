@@ -18,7 +18,7 @@ export const FILTER_SLIDER_BOUNDS = {
 export const SYMBOLOGY_OPTIONS: Array<{ id: MapSymbology; label: string }> = [
   { id: "type", label: "School Type" },
   { id: "enrollment", label: `School Enrollment (${CURRENT_ENROLLMENT_YEAR_LABEL})` },
-  { id: "enrollmentChange", label: "Change in Enrollment" },
+  { id: "enrollmentChange", label: "Change in Historical Enrollment" },
   { id: "capacity", label: "School Capacity" },
   { id: "utilization", label: "School Utilization" },
   { id: "buildingScore", label: "Composite Building Score" },

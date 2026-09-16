@@ -49,6 +49,13 @@ export function enrollmentView(school: School, includePk: boolean) {
       ? null
       : (current - historical) / historical;
 
+  const projectedChangeCount =
+    current == null || projected == null ? null : projected - current;
+  const projectedChangePct =
+    current == null || projected == null || current === 0
+      ? null
+      : (projected - current) / current;
+
   const attendanceCapture = !hasAttendanceArea(school)
     ? null
     : includePk
@@ -66,6 +73,8 @@ export function enrollmentView(school: School, includePk: boolean) {
     projected,
     changeCount,
     changePct,
+    projectedChangeCount,
+    projectedChangePct,
     attendanceCapture,
     utilization,
   };

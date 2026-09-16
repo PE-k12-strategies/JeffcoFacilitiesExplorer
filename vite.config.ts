@@ -48,6 +48,19 @@ export default defineConfig({
         copyHomepageImages();
       },
     },
+    {
+      name: "serve-app-html",
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          const path = req.url?.split("?")[0];
+          if (path === "/" || path === "/index.html") {
+            const query = req.url?.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+            req.url = `/app.html${query}`;
+          }
+          next();
+        });
+      },
+    },
     react(),
   ],
   server: {

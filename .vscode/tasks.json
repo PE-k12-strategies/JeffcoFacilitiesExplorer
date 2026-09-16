@@ -4,7 +4,7 @@
     {
       "label": "Rebuild Live Server bundle",
       "type": "shell",
-      "command": "start-build-watch.cmd",
+      "command": "${workspaceFolder}\\start-build-watch.cmd",
       "options": {
         "cwd": "${workspaceFolder}"
       },

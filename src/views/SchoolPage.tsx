@@ -184,7 +184,7 @@ function DistrictSnapshot() {
           value={formatPercent(avg((item) => item.utilization))}
         />
         <StatCard
-          label="% Change in Enrollment (2015 - 2025)"
+          label="% Change in Historical Enrollment (2015 - 2025)"
           tip={`How much K–12 enrollment grew or shrank from ${HISTORICAL_ENROLLMENT_YEAR} to ${CURRENT_ENROLLMENT_YEAR_LABEL}. A plus means more students; a minus means fewer.`}
           value={formatSignedPercent(avg(enrollmentChange))}
         />
@@ -353,7 +353,7 @@ function SchoolProfile({ school }: { school: School }) {
             compare={cmp((item) => enrollmentView(item, includePk).current, formatNumber)}
           />
           <StatCard
-            label="Change in enrollment"
+            label="Change in Historical Enrollment"
             tip={`How much enrollment grew or shrank from ${HISTORICAL_ENROLLMENT_YEAR} to ${CURRENT_ENROLLMENT_YEAR_LABEL}${includePk ? ", including pre-K" : ", not counting pre-K"}. A plus means more students; a minus means fewer.`}
             value={formatSignedPercent(stats.changePct)}
             hint={studentChangeHint(stats.changeCount)}
@@ -372,6 +372,38 @@ function SchoolProfile({ school }: { school: School }) {
                 : undefined
             }
             compare={cmp((item) => enrollmentView(item, includePk).projected, formatNumber)}
+          />
+          <StatCard
+            label="Change in Projected Enrollment"
+            tip={`How much enrollment is expected to grow or shrink from ${CURRENT_ENROLLMENT_YEAR_LABEL} to ${PROJECTED_ENROLLMENT_YEAR_LABEL}${includePk ? ", including pre-K" : ", not counting pre-K"}. A plus means more students; a minus means fewer.`}
+            value={formatSignedPercent(stats.projectedChangePct)}
+            hint={studentChangeHint(stats.projectedChangeCount)}
+            compare={cmpBoth(
+              (item) => enrollmentView(item, includePk).projectedChangePct,
+              formatSignedPercent,
+            )}
+          />
+          <StatCard
+            label="Utilization"
+            tip={`How full this school is in ${CURRENT_ENROLLMENT_YEAR_LABEL}${includePk ? ", including pre-K" : ", not counting pre-K"}. It is students divided by permanent seats. Portables do not count. Over 100% means more students than planned seats.${
+              tempNote ? ` ${tempNote}` : ""
+            }`}
+            value={formatPercent(stats.utilization)}
+            hint={
+              <>
+                {utilizationLabel(stats.utilization)}
+                {tempNote ? (
+                  <>
+                    <br />
+                    {tempNote}
+                  </>
+                ) : null}
+              </>
+            }
+            compare={cmpBoth(
+              (item) => enrollmentView(item, includePk).utilization,
+              formatPercent,
+            )}
           />
           <StatCard
             label="Attendance Area Capture"
@@ -397,28 +429,6 @@ function SchoolProfile({ school }: { school: School }) {
                   )
                 : undefined
             }
-          />
-          <StatCard
-            label="Utilization"
-            tip={`How full this school is in ${CURRENT_ENROLLMENT_YEAR_LABEL}${includePk ? ", including pre-K" : ", not counting pre-K"}. It is students divided by permanent seats. Portables do not count. Over 100% means more students than planned seats.${
-              tempNote ? ` ${tempNote}` : ""
-            }`}
-            value={formatPercent(stats.utilization)}
-            hint={
-              <>
-                {utilizationLabel(stats.utilization)}
-                {tempNote ? (
-                  <>
-                    <br />
-                    {tempNote}
-                  </>
-                ) : null}
-              </>
-            }
-            compare={cmpBoth(
-              (item) => enrollmentView(item, includePk).utilization,
-              formatPercent,
-            )}
           />
           </dl>
         </div>

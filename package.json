@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "data:build": "py -3 scripts/build-data.py",
-    "dev": "npm run data:build && vite app.html --host",
+    "dev": "npm run data:build && vite --host --open /app.html",
     "build": "npm run data:build && vite build",
     "build:watch": "vite build --watch",
     "preview": "vite preview"

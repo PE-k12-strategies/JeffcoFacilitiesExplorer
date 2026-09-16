@@ -31,12 +31,12 @@ export const ARTICULATION_COLOR_OPTIONS: Array<{
 }> = [
   { id: "default", label: "Default" },
   { id: "birthChange", label: "Change in Birth Rate" },
-  { id: "enrollmentChange", label: "Change in Enrollment" },
+  { id: "enrollmentChange", label: "Change in Historical Enrollment" },
 ];
 
 const FILTER_SLIDER_SHORT: Record<FilterSliderId, string> = {
   enrollment: "Enrollment",
-  enrollmentChange: "Change in Enrollment",
+  enrollmentChange: "Change in Historical Enrollment",
   capacity: "Capacity",
   utilization: "Utilization",
   buildingScore: "Building Score",
@@ -45,7 +45,7 @@ const FILTER_SLIDER_SHORT: Record<FilterSliderId, string> = {
 
 export const FILTER_SLIDER_OPTIONS: Array<{ id: FilterSliderId; label: string }> = [
   { id: "enrollment", label: `School Enrollment (${CURRENT_ENROLLMENT_YEAR_LABEL})` },
-  { id: "enrollmentChange", label: "Change in Enrollment" },
+  { id: "enrollmentChange", label: "Change in Historical Enrollment" },
   { id: "capacity", label: "School Capacity" },
   { id: "utilization", label: "School Utilization" },
   { id: "buildingScore", label: "Composite Building Score" },
@@ -61,9 +61,9 @@ const FILTER_SLIDER_TIPS: Record<FilterSliderId, ReactNode> = {
   ),
   enrollmentChange: (
     <>
-      How much K–12 enrollment grew or shrank from {HISTORICAL_ENROLLMENT_YEAR}{" "}
-      to {CURRENT_ENROLLMENT_YEAR_LABEL}. A plus means more students; a minus
-      means fewer.
+      How much historical K–12 enrollment grew or shrank from{" "}
+      {HISTORICAL_ENROLLMENT_YEAR} to {CURRENT_ENROLLMENT_YEAR_LABEL}. A plus
+      means more students; a minus means fewer.
     </>
   ),
   capacity: (
@@ -287,8 +287,8 @@ function SliderFields({
         <fieldset className="fieldset" key="enrollmentChange">
           <legend>
             <span className="field-legend">
-              Change in enrollment (%)
-              <HelpTip label="Change in enrollment">
+              Change in Historical Enrollment (%)
+              <HelpTip label="Change in Historical Enrollment">
                 {FILTER_SLIDER_TIPS.enrollmentChange}
               </HelpTip>
             </span>
@@ -300,8 +300,8 @@ function SliderFields({
             valueMax={filters.enrollmentChangeMax}
             step={1}
             format={(value) => formatSignedPercent(value, { alreadyPercent: true })}
-            minLabel="Minimum change in enrollment"
-            maxLabel="Maximum change in enrollment"
+            minLabel="Minimum change in historical enrollment"
+            maxLabel="Maximum change in historical enrollment"
             onChange={(enrollmentChangeMin, enrollmentChangeMax) =>
               onChange({ ...filters, enrollmentChangeMin, enrollmentChangeMax })
             }
