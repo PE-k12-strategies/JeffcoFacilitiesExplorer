@@ -63,6 +63,7 @@ export interface School {
   status: SchoolStatus;
   schoolLevel: SchoolLevel;
   isCharter: boolean;
+  isTitleOne: boolean | null;
   includeFlowChart: boolean | null;
   /** Applied permanent capacity from file 15. Portable seats are excluded. */
   capacity: number | null;
@@ -81,6 +82,8 @@ export interface School {
   fci: number | null;
   yearBuilt: number | null;
   educationalAdequacy: number | null;
+  /** Weighted overall EA category from file 16: Poor, Fair, Good, or Excellent. */
+  educationalAdequacyCategory: "Poor" | "Fair" | "Good" | "Excellent" | null;
   educationalAdequacyFactors: EaFactorScores;
   siteCapacity: boolean | null;
   squareFt: number | null;
@@ -145,6 +148,7 @@ export interface MapFilters {
   levels: string[];
   statuses: string[];
   includeCharter: boolean;
+  titleOneStatus: "all" | "titleOne" | "nonTitleOne";
   articulation: string | null;
   enrollmentMin: number | null;
   enrollmentMax: number | null;
@@ -156,6 +160,9 @@ export interface MapFilters {
   utilizationMax: number | null;
   buildingScoreMin: number | null;
   buildingScoreMax: number | null;
+  /** Category rank: 0 Poor, 1 Fair, 2 Good, 3 Excellent. */
+  educationalAdequacyMin: number | null;
+  educationalAdequacyMax: number | null;
   needMin: number | null;
   needMax: number | null;
   symbology: MapSymbology;

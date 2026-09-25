@@ -8,6 +8,8 @@
     ".git/**",
     "node_modules/**",
     "Facility Data/**",
+    "private/**",
+    "functions/**",
     "Images/**",
     "Logos/**",
     "**/*.map"

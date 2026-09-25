@@ -49,6 +49,16 @@ export const EA_FACTORS = [
   },
 ] as const;
 
+export const EA_CATEGORIES = ["Poor", "Fair", "Good", "Excellent"] as const;
+
+export type EaCategory = (typeof EA_CATEGORIES)[number];
+
+export function eaCategoryRank(category: string | null | undefined): number | null {
+  if (!category) return null;
+  const index = EA_CATEGORIES.indexOf(category as EaCategory);
+  return index < 0 ? null : index;
+}
+
 export type EaFactorId = (typeof EA_FACTORS)[number]["id"];
 
 export type EaFactorScores = Record<EaFactorId, number | null>;

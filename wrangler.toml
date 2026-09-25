@@ -1,0 +1,7 @@
+name = "jeffco-facilities-explorer"
+compatibility_date = "2026-09-22"
+pages_build_output_dir = "bundle"
+
+# DASHBOARD_PASSWORD must be a Pages secret, not a [vars] value:
+#   wrangler pages secret put DASHBOARD_PASSWORD
+# Local Pages emulator: copy .dev.vars.example to .dev.vars

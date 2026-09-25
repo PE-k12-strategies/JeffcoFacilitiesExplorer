@@ -17,6 +17,7 @@ import {
   type PriorityStats,
   type ReplacementStats,
 } from "../lib/districtCharts";
+import { buildingSystemTip } from "../lib/buildingSystems";
 import { formatMoney, formatNumber, formatSignedPercent } from "../lib/format";
 import { colors } from "../lib/theme";
 import { ChartTooltip, DYK_HOVER_DIM, DYK_PLOT } from "./AgeFciChart";
@@ -233,7 +234,13 @@ function HorizontalBars({
   labelPad = 92,
   plotHeight,
 }: {
-  rows: Array<{ label: string; value: number; color: string; title?: string }>;
+  rows: Array<{
+    label: string;
+    value: number;
+    color: string;
+    title?: string;
+    note?: string;
+  }>;
   formatValue: (value: number) => string;
   diverge?: boolean;
   showValues?: boolean;
@@ -260,8 +267,12 @@ function HorizontalBars({
   const maxPos = Math.max(0.01, ...rows.map((row) => row.value));
   const zeroX = diverge ? pad.left + plotW / 2 : pad.left;
   const active = rows.find((row) => row.label === hovered) ?? null;
+  // Notes render as HTML so the site language picker (Google Translate) can
+  // rewrite them; SVG text is left untranslated. Every note stays in the DOM
+  // and is toggled with `hidden` so it is translated before it is shown.
+  const noteRows = rows.filter((row) => row.note);
 
-  return (
+  const chart = (
     <svg
       className="dyk-chart-svg"
       viewBox={`0 0 ${width} ${height}`}
@@ -328,10 +339,44 @@ function HorizontalBars({
           </g>
         );
       })}
-      {active ? (
+      {active && !active.note ? (
         <ChartTooltip text={active.title ?? `${active.label} ${formatValue(active.value)}`} />
       ) : null}
     </svg>
+  );
+
+  if (noteRows.length === 0) return chart;
+
+  // Keep the note away from the bar being hovered.
+  const activeIndex = rows.findIndex((row) => row.label === hovered);
+  const noteAtBottom = activeIndex >= 0 && activeIndex < rows.length / 2;
+
+  return (
+    <div className="dyk-chart-hover">
+      {chart}
+      <div
+        className={
+          noteAtBottom ? "dyk-chart-note-layer is-bottom" : "dyk-chart-note-layer"
+        }
+      >
+        {noteRows.map((row) => (
+          <p
+            key={row.label}
+            className={
+              hovered === row.label ? "dyk-chart-note is-active" : "dyk-chart-note"
+            }
+          >
+            <span>
+              <strong>{row.label}</strong>{" "}
+              <span className="notranslate" translate="no">
+                {formatValue(row.value)}
+              </span>
+            </span>
+            <span>{row.note}</span>
+          </p>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -369,6 +414,7 @@ export function PriorityProjectsChart({ stats }: { stats: PriorityStats }) {
   const rows = stats.byAsset.map((item) => ({
     ...item,
     title: `${item.label}: ${formatMoney(item.value)}`,
+    note: buildingSystemTip(item.label),
   }));
   return (
     <ChartFrame label="Identified facility deficiency cost by building system">

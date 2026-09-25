@@ -1,18 +1,10 @@
-/** Site-root path for Vite dev, Live Server, and GitHub Pages.
- *  Vite copies `public/` into `bundle/`, and `index.html` loads JS from there. */
+/** Images and logos sit beside the built JS (`<root>/assets/app.js`), so the root
+ *  is derived from this module's own URL. Cloudflare Pages serves the bundle as the
+ *  site root, while Live Server serves it from `bundle/` under the repo root. */
+const appRoot = import.meta.env.DEV ? null : new URL("../", import.meta.url).href;
+
 export function assetUrl(path: string): string {
   const clean = path.replace(/^\//, "");
-  if (import.meta.env.DEV) return `/${clean}`;
-  return new URL(`bundle/${clean}`, document.baseURI).href;
-}
-
-/** Production first tries `bundle/`, then `public/` (GitHub Pages / older deploys). */
-export function assetUrls(path: string): string[] {
-  const clean = path.replace(/^\//, "");
-  if (import.meta.env.DEV) return [`/${clean}`];
-  const base = document.baseURI;
-  return [
-    new URL(`bundle/${clean}`, base).href,
-    new URL(`public/${clean}`, base).href,
-  ];
+  if (!appRoot) return `/${clean}`;
+  return new URL(clean, appRoot).href;
 }

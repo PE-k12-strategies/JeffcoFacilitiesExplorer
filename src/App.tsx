@@ -1,6 +1,5 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AppFooter, AppHeader, BottomNav } from "./components/Chrome";
-import { PasswordGate } from "./components/PasswordGate";
 import { DataProvider } from "./data/DataProvider";
 import { LandingPage } from "./views/LandingPage";
 import { MapPage } from "./views/MapPage";
@@ -11,7 +10,6 @@ export default function App() {
   const isMap = location.pathname.startsWith("/map");
 
   return (
-    <PasswordGate>
     <DataProvider>
       <a className="skip-link" href="#main">
         Skip to content
@@ -30,6 +28,5 @@ export default function App() {
         <BottomNav />
       </div>
     </DataProvider>
-    </PasswordGate>
   );
 }

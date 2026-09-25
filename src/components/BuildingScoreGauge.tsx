@@ -12,12 +12,18 @@ const R = 99;
 const TRACK = 14;
 const H = CY + (TRACK + 4) / 2 + 1;
 
-const FACTORS: Array<{ id: keyof BuildingScoreFactors; label: string }> = [
-  { id: "fci", label: "Facilities Condition Index (FCI)" },
-  { id: "eui", label: "Energy Use Intensity (EUI) (kBTU / SF)" },
-  { id: "age", label: "Building Age (Years)" },
-  { id: "survey", label: "Survey Score (1–5)" },
-  { id: "workOrder", label: "Work Order $ / SF" },
+const FACTORS: Array<{
+  id: keyof BuildingScoreValues;
+  label: string;
+  higherIsBetter: boolean;
+  /** Raw value that fills the bar. Larger values clamp to full width. */
+  max: number;
+}> = [
+  { id: "fci", label: "Facilities Condition Index (FCI)", higherIsBetter: false, max: 0.25 },
+  { id: "eui", label: "Energy Use Intensity (EUI) (kBTU / SF)", higherIsBetter: false, max: 100 },
+  { id: "age", label: "Building Age (Years)", higherIsBetter: false, max: 100 },
+  { id: "survey", label: "Survey Score (1–5)", higherIsBetter: true, max: 5 },
+  { id: "workOrder", label: "Work Order $ / SF", higherIsBetter: false, max: 5 },
 ];
 
 function pointOnArc(t: number, radius = R) {
@@ -51,15 +57,6 @@ function mixHex(from: string, to: string, t: number): string {
   return `rgb(${mix(0)}, ${mix(1)}, ${mix(2)})`;
 }
 
-const FCI_RAMP = [
-  SYMBOLOGY_DIVERGING_RAMP[2],
-  SYMBOLOGY_DIVERGING_RAMP[1],
-  SYMBOLOGY_DIVERGING_RAMP[0],
-] as const;
-
-/** Raw FCI at or above this value maps to the magenta end of the bar. */
-const FCI_COLOR_CEILING = 0.2;
-
 function mixRamp(ramp: readonly [string, string, string], t: number): string {
   const clamped = Math.max(0, Math.min(1, t));
   const [start, mid, end] = ramp;
@@ -71,10 +68,15 @@ function scoreColor(t: number): string {
   return mixRamp(SYMBOLOGY_DIVERGING_RAMP, t);
 }
 
-function fciBarColor(raw: number | null | undefined, share: number): string {
-  const t =
-    raw == null || Number.isNaN(raw) ? 1 - share : raw / FCI_COLOR_CEILING;
-  return mixRamp(FCI_RAMP, t);
+/** 0 is the raw value; 1 is the metric ceiling. Length uses this directly. */
+function magnitudeShare(value: number, max: number): number {
+  if (max <= 0) return 0;
+  return Math.max(0, Math.min(1, value / max));
+}
+
+/** 0 is poor (maroon) and 1 is good (green), independent of bar length. */
+function performanceShare(magnitude: number, higherIsBetter: boolean): number {
+  return higherIsBetter ? magnitude : 1 - magnitude;
 }
 
 function formatFactorValue(id: keyof BuildingScoreValues, value: number | null | undefined): string {
@@ -91,7 +93,6 @@ function formatFactorValue(id: keyof BuildingScoreValues, value: number | null |
 
 export function BuildingScoreGauge({
   score,
-  factors,
   values,
   compare,
 }: {
@@ -187,28 +188,30 @@ export function BuildingScoreGauge({
       </div>
       <div className="building-score-factors">
         {FACTORS.map((factor) => {
-          const scoreShare = factors?.[factor.id];
-          const share =
-            scoreShare == null || Number.isNaN(scoreShare)
-              ? null
-              : Math.max(0, Math.min(1, scoreShare));
+          const raw = values?.[factor.id];
+          const missing = raw == null || Number.isNaN(raw);
+          const magnitude = missing ? null : magnitudeShare(raw, factor.max);
+          const isZero = magnitude === 0;
           return (
             <div className="building-score-factor" key={factor.id}>
-              <span className="building-score-factor-label">{factor.label}</span>
+              <span className="building-score-factor-label">
+                {factor.label}
+                <span className="building-score-factor-direction">
+                  {factor.higherIsBetter ? "Higher is better ↑" : "Lower is better ↓"}
+                </span>
+              </span>
               <span className="building-score-factor-value">
-                {formatFactorValue(factor.id, values?.[factor.id])}
+                {formatFactorValue(factor.id, raw)}
               </span>
               <div className="bar-track" aria-hidden="true">
                 <div
-                  className="bar-fill"
+                  className={isZero ? "bar-fill is-zero" : "bar-fill"}
                   style={{
-                    width: share == null ? "0%" : `${share * 100}%`,
+                    width: magnitude == null || isZero ? "0%" : `${magnitude * 100}%`,
                     background:
-                      share == null
+                      magnitude == null
                         ? "transparent"
-                        : factor.id === "fci"
-                          ? fciBarColor(values?.[factor.id], share)
-                          : scoreColor(share),
+                        : scoreColor(performanceShare(magnitude, factor.higherIsBetter)),
                   }}
                 />
               </div>

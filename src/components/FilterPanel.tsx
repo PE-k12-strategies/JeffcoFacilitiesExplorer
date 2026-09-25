@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { CURRENT_ENROLLMENT_YEAR_LABEL, HISTORICAL_ENROLLMENT_YEAR } from "../lib/districtCharts";
+import { EA_CATEGORIES } from "../lib/educationalAdequacy";
 import { defaultVisibleLevels, levelColors } from "../lib/theme";
 import { formatMoney, formatNumber, formatSignedPercent } from "../lib/format";
 import { FILTER_SLIDER_BOUNDS, SYMBOLOGY_OPTIONS } from "../lib/symbology";
@@ -21,9 +22,16 @@ export type FilterSliderId =
   | "capacity"
   | "utilization"
   | "buildingScore"
+  | "educationalAdequacy"
   | "need";
 
 export type ArticulationColorMode = "default" | "birthChange" | "enrollmentChange";
+
+const TITLE_ONE_VALUES: MapFilters["titleOneStatus"][] = [
+  "titleOne",
+  "all",
+  "nonTitleOne",
+];
 
 export const ARTICULATION_COLOR_OPTIONS: Array<{
   id: ArticulationColorMode;
@@ -40,6 +48,7 @@ const FILTER_SLIDER_SHORT: Record<FilterSliderId, string> = {
   capacity: "Capacity",
   utilization: "Utilization",
   buildingScore: "Building Score",
+  educationalAdequacy: "Educational Adequacy",
   need: "Facility Need",
 };
 
@@ -49,6 +58,7 @@ export const FILTER_SLIDER_OPTIONS: Array<{ id: FilterSliderId; label: string }>
   { id: "capacity", label: "School Capacity" },
   { id: "utilization", label: "School Utilization" },
   { id: "buildingScore", label: "Composite Building Score" },
+  { id: "educationalAdequacy", label: "Educational Adequacy" },
   { id: "need", label: "Identified Facility Need ($)" },
 ];
 
@@ -82,6 +92,13 @@ const FILTER_SLIDER_TIPS: Record<FilterSliderId, ReactNode> = {
     <>
       A score from 0 to 100 based on the building’s condition, energy use, age,
       and related costs. It is not a letter grade.
+    </>
+  ),
+  educationalAdequacy: (
+    <>
+      The weighted overall educational adequacy score, grouped from Poor to
+      Excellent. It describes how well the building supports teaching and
+      learning, separate from the building-condition score.
     </>
   ),
   need: (
@@ -220,6 +237,14 @@ function activeFilterPhrases(filters: MapFilters): string[] {
       boundMin: extents.buildingScore.min,
       boundMax: extents.buildingScore.max,
       format: (value) => formatNumber(value, 0),
+    },
+    {
+      id: "educationalAdequacy",
+      min: filters.educationalAdequacyMin,
+      max: filters.educationalAdequacyMax,
+      boundMin: extents.educationalAdequacy.min,
+      boundMax: extents.educationalAdequacy.max,
+      format: (value) => EA_CATEGORIES[value] ?? String(value),
     },
     {
       id: "need",
@@ -404,6 +429,39 @@ function SliderFields({
       ),
     },
     {
+      id: "educationalAdequacy",
+      node: (
+        <fieldset className="fieldset" key="educationalAdequacy">
+          <legend>
+            <span className="field-legend">
+              Educational adequacy
+              <HelpTip label="Educational adequacy">
+                {FILTER_SLIDER_TIPS.educationalAdequacy}
+              </HelpTip>
+            </span>
+          </legend>
+          <DualRange
+            boundMin={extents.educationalAdequacy.min}
+            boundMax={extents.educationalAdequacy.max}
+            valueMin={filters.educationalAdequacyMin}
+            valueMax={filters.educationalAdequacyMax}
+            step={1}
+            format={(value) => EA_CATEGORIES[value] ?? String(value)}
+            minLabel="Lowest educational adequacy"
+            maxLabel="Highest educational adequacy"
+            onChange={(educationalAdequacyMin, educationalAdequacyMax) =>
+              onChange({ ...filters, educationalAdequacyMin, educationalAdequacyMax })
+            }
+          />
+          <div className="ea-category-scale" aria-hidden="true">
+            {EA_CATEGORIES.map((label) => (
+              <span key={label}>{label}</span>
+            ))}
+          </div>
+        </fieldset>
+      ),
+    },
+    {
       id: "need",
       node: (
         <fieldset className="fieldset" key="need">
@@ -527,6 +585,44 @@ export function FilterPanel({
             ))}
           </select>
         </label>
+      ) : null}
+
+      {showLayers ? (
+        <fieldset className="fieldset title-one-filter">
+          <legend className="field-legend">
+            Title I Status ({CURRENT_ENROLLMENT_YEAR_LABEL})
+            <HelpTip label="Title I Status">
+              Title I provides federal funding to schools serving high
+              concentrations of students from low-income families. Choose an
+              endpoint to show only Title I or non-Title I schools.
+            </HelpTip>
+          </legend>
+          <input
+            type="range"
+            min="0"
+            max="2"
+            step="1"
+            value={TITLE_ONE_VALUES.indexOf(filters.titleOneStatus)}
+            aria-label={`Title I status: ${
+              filters.titleOneStatus === "titleOne"
+                ? "Title I"
+                : filters.titleOneStatus === "nonTitleOne"
+                  ? "Non-Title I"
+                  : "All schools"
+            }`}
+            onChange={(event) =>
+              onChange({
+                ...filters,
+                titleOneStatus: TITLE_ONE_VALUES[Number(event.target.value)],
+              })
+            }
+          />
+          <div className="title-one-labels" aria-hidden="true">
+            <span>Title I</span>
+            <span>All schools</span>
+            <span>Non-Title I</span>
+          </div>
+        </fieldset>
       ) : null}
 
       {showLayers ? (

@@ -1,3 +1,4 @@
+import { eaCategoryRank } from "./educationalAdequacy";
 import { enrollmentChange } from "./format";
 import { defaultVisibleLevels } from "./theme";
 import { isCompositeUniverseSchool } from "./universe";
@@ -12,6 +13,7 @@ export function defaultFilters(data: ExplorerData): MapFilters {
     levels: levels.length ? levels : defaultVisibleLevels,
     statuses: ["Active"],
     includeCharter: false,
+    titleOneStatus: "all",
     articulation: null,
     enrollmentMin: null,
     enrollmentMax: null,
@@ -23,6 +25,8 @@ export function defaultFilters(data: ExplorerData): MapFilters {
     utilizationMax: null,
     buildingScoreMin: null,
     buildingScoreMax: null,
+    educationalAdequacyMin: null,
+    educationalAdequacyMax: null,
     needMin: null,
     needMax: null,
     symbology: "type",
@@ -41,6 +45,12 @@ export function schoolMatches(school: School, filters: MapFilters): boolean {
     return false;
   }
   if (filters.articulation && school.articulation !== filters.articulation) {
+    return false;
+  }
+  if (filters.titleOneStatus === "titleOne" && school.isTitleOne !== true) {
+    return false;
+  }
+  if (filters.titleOneStatus === "nonTitleOne" && school.isTitleOne !== false) {
     return false;
   }
   if (filters.enrollmentMin != null && (school.enrollment ?? -1) < filters.enrollmentMin) {
@@ -82,6 +92,22 @@ export function schoolMatches(school: School, filters: MapFilters): boolean {
   }
   if (filters.buildingScoreMax != null && (score ?? Infinity) > filters.buildingScoreMax) {
     return false;
+  }
+  if (filters.educationalAdequacyMin != null || filters.educationalAdequacyMax != null) {
+    const category = eaCategoryRank(school.educationalAdequacyCategory);
+    if (category == null) return false;
+    if (
+      filters.educationalAdequacyMin != null &&
+      category < filters.educationalAdequacyMin
+    ) {
+      return false;
+    }
+    if (
+      filters.educationalAdequacyMax != null &&
+      category > filters.educationalAdequacyMax
+    ) {
+      return false;
+    }
   }
   const need = school.needs.total;
   if (filters.needMin != null && need < filters.needMin) {

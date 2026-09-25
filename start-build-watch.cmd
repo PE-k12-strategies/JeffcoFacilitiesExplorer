@@ -17,6 +17,7 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
-echo Done. Open index.html with Live Server / Go Live.
+echo Done. Viewing the gated dashboard: npm run dev  (or npm run preview:cf)
+echo Live Server will not protect facility JSON.
 echo Watching for source edits...
 call npm.cmd run build:watch

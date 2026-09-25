@@ -12,6 +12,7 @@ export const FILTER_SLIDER_BOUNDS = {
   capacity: { min: 0, max: 2_500 },
   utilization: { min: 0, max: 120 },
   buildingScore: { min: 0, max: 100 },
+  educationalAdequacy: { min: 0, max: 3 },
   need: { min: 0, max: 22_000_000 },
 } as const;
 

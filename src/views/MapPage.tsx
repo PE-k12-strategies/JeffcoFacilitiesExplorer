@@ -888,6 +888,7 @@ export function MapPage() {
                   offset={18}
                   onClose={() => setSelectedId(null)}
                   closeOnClick={false}
+                  className="map-school-popup"
                 >
                   <SchoolPreview school={selected} symbology={symbology} compact />
                 </Popup>

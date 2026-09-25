@@ -1,20 +1,16 @@
 import type { ArticulationCollection, ExplorerData } from "../types";
-import { assetUrls } from "../lib/assetUrl";
 
 /**
- * Local JSON today; swap this function when the Supabase API is ready.
- * Set VITE_API_BASE_URL to load from an HTTP endpoint that returns the same shape.
+ * Facility JSON is read through /api/data. When DASHBOARD_PASSWORD is set, the
+ * server requires HTTP Basic auth (or a session cookie). Do not fetch
+ * private/data from the browser, and do not wire supabase-js here.
  */
-async function fetchJson<T>(path: string, label: string): Promise<T> {
-  const apiBase = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
-  const urls = apiBase ? [`${apiBase}/${path}`] : assetUrls(`data/${path}`);
-  let lastStatus = 0;
-  for (const url of urls) {
-    const response = await fetch(url);
-    lastStatus = response.status;
-    if (response.ok) return response.json() as Promise<T>;
+async function fetchJson<T>(file: string, label: string): Promise<T> {
+  const response = await fetch(`/api/data/${file}`, { credentials: "include" });
+  if (!response.ok) {
+    throw new Error(`Unable to load ${label} (${response.status})`);
   }
-  throw new Error(`Unable to load ${label} (${lastStatus || 404})`);
+  return response.json() as Promise<T>;
 }
 
 export function loadExplorerData(): Promise<ExplorerData> {

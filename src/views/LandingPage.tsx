@@ -1,10 +1,7 @@
 import { Link } from "react-router-dom";
 import { DidYouKnowCarousel } from "../components/DidYouKnowCarousel";
 import { assetUrl } from "../lib/assetUrl";
-
-const MASTER_PLAN_URL = "#master-plan";
-const BOUNDARY_STUDY_URL =
-  "https://www.jeffcopublicschools.org/services/facilities/boundary-study";
+import { BOUNDARY_STUDY_URL, MASTER_PLAN_URL } from "../lib/links";
 
 export function LandingPage() {
   return (
@@ -100,8 +97,13 @@ export function LandingPage() {
             <p className="eyebrow">03</p>
             <h2>Tied to ongoing efforts</h2>
             <p>
-              This explorer is directly connected to the district’s{" "}
-              <a className="link-strong" href={MASTER_PLAN_URL}>
+              {"This explorer is directly connected to the district’s "}
+              <a
+                className="link-strong"
+                href={MASTER_PLAN_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Strategic Capital Master Plan
               </a>
               , which provides the overarching framework for evaluating,
@@ -113,7 +115,7 @@ export function LandingPage() {
               evolving needs of our community.
             </p>
             <p>
-              It also builds on the 2023–24{" "}
+              {"It also builds on the 2023–24 "}
               <a
                 className="link-strong"
                 href={BOUNDARY_STUDY_URL}

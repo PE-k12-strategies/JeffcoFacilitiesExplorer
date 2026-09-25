@@ -3,8 +3,11 @@ dist
 .DS_Store
 .env
 .env.local
+.dev.vars
 *.log
 public/logos
 public/images
 
 # Live Server loads committed ./bundle — do not ignore it
+bundle/data/
+bundle/__facility/

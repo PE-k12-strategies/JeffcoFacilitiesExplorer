@@ -24,10 +24,10 @@ import {
 
 const SLIDES: Array<{ id: string }> = [
   { id: "age-condition" },
+  { id: "enrollment-decline" },
   { id: "replacement-cost" },
   { id: "priority-projects" },
   { id: "educational-adequacy" },
-  { id: "enrollment-decline" },
   { id: "birth-rate" },
   { id: "uneven-change" },
   { id: "construction-cost" },

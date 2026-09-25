@@ -1,7 +1,8 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import { dashboardGatePlugin } from "./server/gatePlugin.ts";
 
 function copyJeffcoLogos() {
   try {
@@ -38,63 +39,110 @@ function copyHomepageImages() {
   }
 }
 
-export default defineConfig({
-  base: "./",
-  plugins: [
-    {
-      name: "copy-jeffco-assets",
-      buildStart() {
-        copyJeffcoLogos();
-        copyHomepageImages();
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  if (env.DASHBOARD_PASSWORD) {
+    process.env.DASHBOARD_PASSWORD = env.DASHBOARD_PASSWORD;
+  }
+
+  return {
+    base: "./",
+    plugins: [
+      dashboardGatePlugin(() => process.env.DASHBOARD_PASSWORD ?? env.DASHBOARD_PASSWORD),
+      {
+        name: "copy-jeffco-assets",
+        buildStart() {
+          copyJeffcoLogos();
+          copyHomepageImages();
+        },
       },
-    },
-    {
-      name: "serve-app-html",
-      configureServer(server) {
-        server.middlewares.use((req, _res, next) => {
-          const path = req.url?.split("?")[0];
-          if (path === "/" || path === "/index.html") {
-            const query = req.url?.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
-            req.url = `/app.html${query}`;
+      {
+        name: "serve-app-html",
+        configureServer(server) {
+          server.middlewares.use((req, _res, next) => {
+            const path = req.url?.split("?")[0];
+            if (path === "/" || path === "/index.html") {
+              const query = req.url?.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+              req.url = `/app.html${query}`;
+            }
+            next();
+          });
+        },
+      },
+      {
+        name: "pages-output",
+        closeBundle() {
+          const routes = {
+            version: 1,
+            include: ["/*"],
+            exclude: [] as string[],
+          };
+          writeFileSync(join("bundle", "_routes.json"), JSON.stringify(routes, null, 2));
+          // assets/app.js keeps a fixed name, so browsers must revalidate or
+          // they serve a stale bundle after every deploy.
+          writeFileSync(
+            join("bundle", "_headers"),
+            ["/*", "  Cache-Control: no-cache", ""].join("\n"),
+          );
+          if (existsSync("bundle/app.html")) {
+            copyFileSync("bundle/app.html", "bundle/index.html");
           }
-          next();
-        });
+          if (existsSync("bundle/data")) {
+            rmSync("bundle/data", { recursive: true, force: true });
+          }
+          if (existsSync("private/data")) {
+            mkdirSync("bundle/__facility", { recursive: true });
+            cpSync("private/data", "bundle/__facility", { recursive: true });
+            rmSync(join("bundle", "__facility", ".gitkeep"), { force: true });
+          }
+        },
+      },
+      react(),
+    ],
+    server: {
+      port: 5173,
+      strictPort: true,
+      host: true,
+      fs: {
+        deny: [
+          ".env",
+          ".env.*",
+          ".dev.vars",
+          "private/**",
+          "Facility Data/**",
+          "functions/**",
+          "server/**",
+        ],
+      },
+      watch: {
+        ignored: [
+          "**/Logos/**",
+          "**/public/logos/**",
+          "**/Images/**",
+          "**/public/images/**",
+          "**/bundle/**",
+        ],
       },
     },
-    react(),
-  ],
-  server: {
-    port: 5173,
-    strictPort: true,
-    host: true,
-    watch: {
-      ignored: [
-        "**/Logos/**",
-        "**/public/logos/**",
-        "**/Images/**",
-        "**/public/images/**",
-        "**/bundle/**",
-      ],
-    },
-  },
-  build: {
-    outDir: "bundle",
-    emptyOutDir: true,
-    cssCodeSplit: false,
-    rollupOptions: {
-      input: "app.html",
-      output: {
-        entryFileNames: "assets/app.js",
-        chunkFileNames: "assets/[name].js",
-        assetFileNames: (assetInfo) => {
-          const name = assetInfo.name ?? "";
-          if (name.endsWith(".css")) return "assets/app.css";
-          return "assets/[name][extname]";
+    build: {
+      outDir: "bundle",
+      emptyOutDir: true,
+      cssCodeSplit: false,
+      rollupOptions: {
+        input: "app.html",
+        output: {
+          entryFileNames: "assets/app.js",
+          chunkFileNames: "assets/[name].js",
+          assetFileNames: (assetInfo) => {
+            const name = assetInfo.name ?? "";
+            if (name.endsWith(".css")) return "assets/app.css";
+            return "assets/[name][extname]";
+          },
         },
       },
     },
-  },
-  optimizeDeps: {
-    include: ["mapbox-gl"],
-  },
+    optimizeDeps: {
+      include: ["mapbox-gl"],
+    },
+  };
 });

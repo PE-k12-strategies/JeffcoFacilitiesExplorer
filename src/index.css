@@ -112,59 +112,6 @@ p {
   flex-direction: column;
 }
 
-.password-gate {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: var(--mist);
-}
-
-.password-gate-card {
-  width: min(100%, 22rem);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 28px 24px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: var(--shadow);
-}
-
-.password-gate-card h1 {
-  margin: 0;
-  font-size: 1.25rem;
-  color: var(--navy);
-}
-
-.password-gate-card .field {
-  display: flex;
-  flex-direction: column;
-}
-
-.password-gate-card input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-}
-
-.password-gate-card input[aria-invalid="true"] {
-  border-color: var(--magenta);
-}
-
-.password-gate-error {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--magenta);
-}
-
-.password-gate-card .btn {
-  align-self: flex-start;
-}
-
 .app-header {
   position: sticky;
   top: 0;
@@ -338,11 +285,14 @@ p {
   align-items: center;
   justify-content: center;
   gap: 2px;
+  text-align: center;
   text-decoration: none;
   color: var(--muted);
   font-size: 11px;
   font-weight: 700;
   min-height: var(--nav-h);
+  padding: 0 4px;
+  line-height: 1.15;
 }
 
 .bottom-nav a[aria-current="page"],
@@ -686,6 +636,54 @@ a.link-strong {
   fill: var(--ink);
   font-size: 10px;
   font-weight: 700;
+}
+
+.dyk-chart-hover {
+  position: relative;
+}
+
+.dyk-chart-note-layer {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 22rem);
+  pointer-events: none;
+}
+
+.dyk-chart-note-layer.is-bottom {
+  top: auto;
+  bottom: 0;
+}
+
+/* Inactive notes stay laid out but invisible so the translate widget still
+   reads them; display: none can hide them from its DOM walk. */
+.dyk-chart-note {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 6px 9px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ink);
+  opacity: 0;
+}
+
+.dyk-chart-note-layer.is-bottom .dyk-chart-note {
+  top: auto;
+  bottom: 0;
+}
+
+.dyk-chart-note.is-active {
+  opacity: 1;
 }
 
 .dyk-chart-x-title {
@@ -1088,6 +1086,19 @@ a.link-strong {
 .building-score-factor-label {
   min-width: 0;
   line-height: 1.2;
+}
+
+.building-score-factor-direction {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.building-score-factor .bar-fill.is-zero {
+  min-width: 6px;
 }
 
 .building-score-factor-value {
@@ -2185,6 +2196,56 @@ a.link-strong {
   align-items: center;
   gap: 6px;
   max-width: 100%;
+}
+
+.title-one-filter {
+  min-width: 0;
+}
+
+.title-one-filter input[type="range"] {
+  display: block;
+  width: calc(100% - 12px);
+  height: 24px;
+  margin: 0 6px;
+  accent-color: var(--purple);
+  cursor: pointer;
+}
+
+.title-one-labels {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin-top: -2px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.title-one-labels span:nth-child(2) {
+  text-align: center;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.title-one-labels span:last-child {
+  text-align: right;
+}
+
+.ea-category-scale {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.ea-category-scale span:nth-child(2),
+.ea-category-scale span:nth-child(3) {
+  text-align: center;
+}
+
+.ea-category-scale span:last-child {
+  text-align: right;
 }
 
 .help-tip {
@@ -3485,8 +3546,15 @@ a.link-strong {
   padding: 12px;
 }
 
+/* Hover labels follow the cursor, so they must sit under the selected school
+   popup or they cover its "School details" button. */
+.map-school-popup {
+  z-index: 6;
+}
+
 .map-hover-popup {
   pointer-events: none;
+  z-index: 4;
 }
 
 .map-hover-popup .mapboxgl-popup-content,

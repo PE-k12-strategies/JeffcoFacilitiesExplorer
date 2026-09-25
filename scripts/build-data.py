@@ -1,6 +1,7 @@
-"""Build compact JSON for the public explorer from Facility Data CSVs/GeoJSON.
+"""Build compact JSON for the gated /api/data snapshot from Facility Data CSVs/GeoJSON.
 
 Run from repo root:  py -3 scripts/build-data.py
+Writes to private/data (not public/ or bundle/).
 """
 
 from __future__ import annotations
@@ -15,7 +16,8 @@ from statistics import median
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "Facility Data")
-OUT = os.path.join(ROOT, "public", "data")
+# Compiled snapshot for the gated /api/data route — not copied into public/ or bundle/.
+OUT = os.path.join(ROOT, "private", "data")
 
 
 def money(value) -> float:
@@ -520,10 +522,13 @@ def main() -> None:
         return int(round(n * 100))
 
     ea_by_id: dict[str, dict[str, int | None]] = {}
+    ea_category_by_id: dict[str, str | None] = {}
     for row in read_csv("16 EA Category Scores.csv"):
         uid = (row.get("State School ID") or "").strip()
         if not uid or uid in ea_by_id:
             continue
+        category = (row.get("Weighted overall EA Score category") or "").strip()
+        ea_category_by_id[uid] = category or None
         ea_by_id[uid] = {
             "presence": ea_points(row.get("Presence weighted")),
             "safetySecurity": ea_points(row.get("Safety & Security score weighted")),
@@ -534,6 +539,18 @@ def main() -> None:
             "assembly": ea_points(row.get("Assembly score weighted")),
             "extendedLearning": ea_points(row.get("Extended learning score weighted")),
         }
+
+    title_one_by_id: dict[str, bool | None] = {}
+    for row in read_csv("17 Title I Status.csv"):
+        cde_code = (row.get("CDE School Code") or "").strip()
+        if not cde_code:
+            continue
+        try:
+            uid = f"CO-1420-{int(float(cde_code)):04d}"
+        except ValueError:
+            continue
+        if uid not in title_one_by_id:
+            title_one_by_id[uid] = yes_no(row.get("Title 1"))
 
     schools = []
     for row in decision:
@@ -571,6 +588,7 @@ def main() -> None:
             "status": row.get("Status") or "Unknown",
             "schoolLevel": row.get("School Level") or "Unknown",
             "isCharter": (row.get("School Level") or "") == "Charter",
+            "isTitleOne": title_one_by_id.get(uid),
             "includeFlowChart": yes_no(row.get("Include_Flow_Chart")),
             "capacity": capacity,
             "temporaryCapacity": temporary_capacity,
@@ -585,6 +603,7 @@ def main() -> None:
             "fci": number(row.get("FCI")),
             "yearBuilt": year_by_id.get(uid),
             "educationalAdequacy": number(row.get("EducationalAdequacy")),
+            "educationalAdequacyCategory": ea_category_by_id.get(uid),
             "educationalAdequacyFactors": ea_by_id.get(
                 uid,
                 {
@@ -759,6 +778,9 @@ def main() -> None:
     temp_matched = sum(
         1 for school in schools if (school.get("temporaryCapacity") or 0) > 0
     )
+    title_one_matched = sum(
+        1 for school in schools if school.get("isTitleOne") is not None
+    )
     print(f"Wrote {len(schools)} schools -> {schools_path}")
     print(f"Enrollment projections joined for {matched} schools")
     print(f"PK enrollment joined for {pk_matched} schools")
@@ -766,6 +788,7 @@ def main() -> None:
         f"Permanent capacity joined for {perm_matched} schools "
         f"({temp_matched} with portable seats)"
     )
+    print(f"Title I status joined for {title_one_matched} schools")
     print(f"Wrote {len(slim['features'])} articulation areas -> {geo_dst}")
     print(f"Wrote district boundary -> {district_dst}")
 
