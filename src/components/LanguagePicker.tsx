@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { HelpTip } from "./Ui";
 
 export const TRANSLATE_LANGUAGES = [
   { code: "en", label: "English" },
@@ -97,15 +98,14 @@ export function LanguagePicker() {
       <label className="language-picker-control" htmlFor="site-language">
         <span className="visually-hidden">Language</span>
         <svg
-          className="language-picker-icon"
+          className="language-picker-globe"
           viewBox="0 0 24 24"
           aria-hidden="true"
           focusable="false"
         >
-          <path
-            fill="currentColor"
-            d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"
-          />
+          <circle cx="12" cy="12" r="9" />
+          <ellipse cx="12" cy="12" rx="4" ry="9" />
+          <path d="M3 12h18M4.6 7.5h14.8M4.6 16.5h14.8" />
         </svg>
         <select
           id="site-language"
@@ -118,7 +118,20 @@ export function LanguagePicker() {
             </option>
           ))}
         </select>
+        <svg
+          className="language-picker-chevron"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
       </label>
+      {lang !== "en" ? (
+        <HelpTip label="translation">
+          This content was machine-translated from English and may vary from the original.
+        </HelpTip>
+      ) : null}
       <div id="google_translate_element" aria-hidden="true" />
     </div>
   );

@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import MapGL, { Layer, Source } from "react-map-gl/mapbox";
+import MapGL, { Layer, Source, type MapRef } from "react-map-gl/mapbox";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useExplorer } from "../data/DataProvider";
@@ -11,6 +11,28 @@ import { colors } from "../lib/theme";
 import type { School } from "../types";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const INSET_ZOOM = 13;
+
+function cameraIsOnSchool(map: mapboxgl.Map, center: [number, number]) {
+  const current = map.getCenter();
+  return (
+    Math.abs(current.lng - center[0]) < 0.0008 && Math.abs(current.lat - center[1]) < 0.0008
+  );
+}
+
+function flyToSchool(map: mapboxgl.Map, center: [number, number], animate: boolean) {
+  try {
+    map.flyTo({
+      center,
+      zoom: INSET_ZOOM,
+      duration: animate ? 700 : 0,
+      essential: true,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function toInsetPoints(schools: School[], featuredId: string) {
   return {
@@ -36,6 +58,9 @@ function toInsetPoints(schools: School[], featuredId: string) {
 
 export function SchoolInsetMap({ school }: { school: School }) {
   const { data } = useExplorer();
+  const mapRef = useRef<MapRef>(null);
+  const openedSchoolId = useRef(school.id);
+  const [mapReady, setMapReady] = useState(false);
   const mapUrl = `/map?school=${schoolSlug(school.id)}`;
   const ready =
     Boolean(MAPBOX_TOKEN) &&
@@ -51,18 +76,44 @@ export function SchoolInsetMap({ school }: { school: School }) {
     return toInsetPoints(list, school.id);
   }, [data.schools, school]);
 
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !ready || school.longitude == null || school.latitude == null) return;
+    const center: [number, number] = [school.longitude, school.latitude];
+    const schoolId = school.id;
+
+    const go = (animate: boolean) => {
+      if (cameraIsOnSchool(map, center)) {
+        openedSchoolId.current = schoolId;
+        return;
+      }
+      if (flyToSchool(map, center, animate)) openedSchoolId.current = schoolId;
+    };
+
+    go(openedSchoolId.current !== schoolId);
+
+    const retry = () => {
+      if (openedSchoolId.current !== schoolId) return;
+      go(true);
+    };
+    map.once("idle", retry);
+    return () => map.off("idle", retry);
+  }, [mapReady, ready, school.id, school.longitude, school.latitude]);
+
   return (
     <div className="school-inset-map">
       {ready ? (
         <MapGL
+          ref={mapRef}
           mapLib={mapboxgl}
           mapboxAccessToken={MAPBOX_TOKEN}
           mapStyle="mapbox://styles/mapbox/light-v11"
           initialViewState={{
             longitude: school.longitude as number,
             latitude: school.latitude as number,
-            zoom: 13,
+            zoom: INSET_ZOOM,
           }}
+          onLoad={() => setMapReady(true)}
           attributionControl
           dragRotate={false}
           localFontFamily="Montserrat"
