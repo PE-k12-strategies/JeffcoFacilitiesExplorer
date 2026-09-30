@@ -3707,6 +3707,43 @@ a.link-strong {
 
 .language-picker select option {
   color: var(--ink);
+  padding: 6px 12px 6px 16px;
+}
+
+@supports (appearance: base-select) {
+  .language-picker select,
+  .language-picker select::picker(select) {
+    appearance: base-select;
+  }
+
+  .language-picker select::picker-icon,
+  .language-picker select option::checkmark {
+    display: none;
+  }
+
+  .language-picker select::picker(select) {
+    margin-top: 6px;
+    padding: 4px 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  }
+
+  .language-picker select option {
+    min-width: 140px;
+    font-weight: 600;
+  }
+
+  .language-picker select option:hover,
+  .language-picker select option:focus-visible {
+    background: rgba(103, 55, 133, 0.1);
+  }
+
+  .language-picker select option:checked {
+    color: var(--purple);
+    font-weight: 700;
+  }
 }
 
 #google_translate_element {
