@@ -64,14 +64,12 @@ export function EaRadarChart({
   peerLabel,
   overall,
   compare,
-  unavailableNote,
 }: {
   scores?: EaFactorScores | null;
   averages?: EaFactorScores | null;
   peerLabel?: string;
   overall?: number | null;
   compare?: ReactNode;
-  unavailableNote?: string;
 }) {
   const values = scores ?? emptyEaFactors();
   const peerValues = averages ?? emptyEaFactors();
@@ -104,22 +102,6 @@ export function EaRadarChart({
   const typeLabel = peerLabel ? `${peerLabel} average` : "Type average";
   const overallLabel = formatPercent(overall);
 
-  if (unavailableNote) {
-    return (
-      <figure className="ea-radar ea-radar-unavailable">
-        <figcaption>
-          Educational adequacy factors
-          <HelpTip label="Educational adequacy">
-            A score for how well the building supports teaching and learning, not
-            how worn it is. Each of the eight factors is one spoke on the chart.
-            Farther from the center means a higher score.
-          </HelpTip>
-        </figcaption>
-        <p className="ea-radar-unavailable-note">{unavailableNote}</p>
-      </figure>
-    );
-  }
-
   return (
     <figure className="ea-radar">
       <figcaption>
@@ -137,7 +119,7 @@ export function EaRadarChart({
             viewBox={`0 0 ${SIZE} ${SIZE}`}
             preserveAspectRatio="xMidYMid meet"
             role="img"
-            aria-label={`Educational adequacy ${overallLabel}. Spider chart for Presence, Safety and Security, Community, Organization, Environmental Quality, Instructional Space, Assembly, and Extended Learning`}
+            aria-label={`Educational adequacy ${overallLabel}. Spider chart for Classrooms, Safety and Security, Presence, Assembly, Organization, Environmental Quality, Extended Learning, and Community`}
           >
             {RINGS.map((ring) => (
               <path key={ring} d={ringPath(ring)} className="ea-radar-ring" />

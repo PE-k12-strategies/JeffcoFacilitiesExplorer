@@ -10,6 +10,7 @@ import csv
 import json
 import math
 import os
+import tempfile
 from collections import defaultdict
 from datetime import datetime, timezone
 from statistics import median
@@ -18,6 +19,22 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "Facility Data")
 # Compiled snapshot for the gated /api/data route — not copied into public/ or bundle/.
 OUT = os.path.join(ROOT, "private", "data")
+
+
+def write_json(path: str, payload: object) -> None:
+    """Replace path only after the new file is fully written."""
+    directory = os.path.dirname(path)
+    fd, temp_path = tempfile.mkstemp(prefix=".tmp-", suffix=".json", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, separators=(",", ":"))
+        os.replace(temp_path, path)
+    except Exception:
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
+        raise
 
 
 def money(value) -> float:
@@ -51,6 +68,17 @@ def number(value):
     if math.isnan(n):
         return None
     return n
+
+
+def building_year(row: dict) -> int | None:
+    """Year from table 10. Header may be Effective_Building_Age or YearBuilt."""
+    raw = row.get("Effective_Building_Age")
+    if raw is None or str(raw).strip() == "":
+        raw = row.get("YearBuilt")
+    year = number(raw)
+    if year is None:
+        return None
+    return int(year)
 
 
 def yes_no(value):
@@ -251,33 +279,126 @@ def load_permanent_temp_capacity() -> dict[str, dict[str, float | None]]:
     return by_id
 
 
-def load_building_score_workbook() -> tuple[dict[str, dict], dict[str, dict], dict[str, int]]:
-    """Standardized 0–1 components and raw inputs from file 13."""
-    factors_by_id: dict[str, dict] = {}
-    values_by_id: dict[str, dict] = {}
-    year_by_id: dict[str, int] = {}
+COMPOSITE_WEIGHTS = {
+    "fci": 0.30,
+    "eui": 0.15,
+    "age": 0.25,
+    "survey": 0.10,
+    "workOrder": 0.20,
+}
+
+
+def _significant_digits(value: float, digits: int = 3) -> float:
+    """Excel-style rounding used by PERCENTRANK.INC."""
+    if value == 0:
+        return 0.0
+    magnitude = math.floor(math.log10(abs(value)))
+    return round(value, digits - 1 - int(magnitude))
+
+
+def percentrank_inc(values: list[float], target: float) -> float | None:
+    """Excel PERCENTRANK.INC with the default of 3 significant digits."""
+    ordered = sorted(values)
+    count = len(ordered)
+    if count < 2 or target < ordered[0] or target > ordered[-1]:
+        return None
+    if target in ordered:
+        rank = ordered.index(target) / (count - 1)
+    else:
+        rank = None
+        for index in range(1, count):
+            if ordered[index] <= target:
+                continue
+            low = ordered[index - 1]
+            high = ordered[index]
+            span = high - low
+            fraction = 0.0 if span == 0 else (target - low) / span
+            rank = ((index - 1) + fraction) / (count - 1)
+            break
+    if rank is None:
+        return None
+    return _significant_digits(rank)
+
+
+def standardized_eui(value: float | None) -> float | None:
+    if value is None:
+        return None
+    if value <= 25:
+        return 1.0
+    if value <= 40:
+        return 0.7
+    if value <= 55:
+        return 0.4
+    return 0.1
+
+
+def composite_from_factors(factors: dict[str, float | None]) -> float | None:
+    available = {key: value for key, value in factors.items() if value is not None}
+    if not available:
+        return None
+    weight_sum = sum(COMPOSITE_WEIGHTS[key] for key in available)
+    if weight_sum <= 0:
+        return None
+    return sum(factors[key] * COMPOSITE_WEIGHTS[key] for key in available) / weight_sum
+
+
+def load_composite_inputs() -> dict[str, dict[str, float | None]]:
+    """Raw EUI, survey, and work-order inputs from file 13."""
+    by_id: dict[str, dict[str, float | None]] = {}
     for row in read_csv("13 Composite Building Score.csv"):
         uid = (row.get("State School ID") or "").strip()
         if not uid:
             continue
-        factors_by_id[uid] = {
-            "fci": number(row.get("Standardized FCI")),
-            "eui": number(row.get("Standardized EUI")),
-            "age": number(row.get("Standardized age")),
-            "survey": number(row.get("Standardized survey score")),
-            "workOrder": number(row.get("Standardized work order $/SF")),
-        }
-        values_by_id[uid] = {
-            "fci": number(row.get("FCI")),
+        by_id[uid] = {
             "eui": number(_row_by_prefix(row, "Site EUI")),
-            "age": number(row.get("Effective Building Age")),
             "survey": number(row.get("Facilities condition survey score")),
             "workOrder": number(_row_by_prefix(row, "Average Work Order")),
         }
-        year = number(row.get("Year Built"))
-        if year is not None:
-            year_by_id[uid] = int(year)
-    return factors_by_id, values_by_id, year_by_id
+    return by_id
+
+
+def composite_building_scores(
+    inputs_by_id: dict[str, dict[str, float | None]],
+    fci_by_id: dict[str, float | None],
+    year_by_id: dict[str, int | None],
+    current_year: int,
+) -> tuple[dict[str, dict], dict[str, float | None]]:
+    """Standardized 0–1 factors and the weighted composite for file 13 schools."""
+    ages: list[float] = []
+    work_orders: list[float] = []
+    age_by_id: dict[str, float | None] = {}
+    for uid in inputs_by_id:
+        year = year_by_id.get(uid)
+        age = None if year is None else float(current_year - year)
+        age_by_id[uid] = age
+        if age is not None:
+            ages.append(age)
+        work_order = inputs_by_id[uid]["workOrder"]
+        if work_order is not None:
+            work_orders.append(work_order)
+    age_distribution = [0.0, *ages]
+
+    factors_by_id: dict[str, dict] = {}
+    score_by_id: dict[str, float | None] = {}
+    for uid, inputs in inputs_by_id.items():
+        age = age_by_id[uid]
+        fci = fci_by_id.get(uid)
+        survey = inputs["survey"]
+        work_order = inputs["workOrder"]
+        age_rank = None if age is None else percentrank_inc(age_distribution, age)
+        work_rank = (
+            None if work_order is None else percentrank_inc(work_orders, work_order)
+        )
+        factors = {
+            "fci": None if fci is None else 1 - fci,
+            "eui": standardized_eui(inputs["eui"]),
+            "age": None if age_rank is None else 1 - age_rank,
+            "survey": None if survey is None else (survey - 1) / 4,
+            "workOrder": None if work_rank is None else 1 - work_rank,
+        }
+        factors_by_id[uid] = factors
+        score_by_id[uid] = composite_from_factors(factors)
+    return factors_by_id, score_by_id
 
 
 PRIORITIES = ("1", "2", "3", "4")
@@ -429,9 +550,7 @@ def main() -> None:
     decision = read_csv("01 Decision Data Export.csv")
     mapped = {row["Building Code"]: row for row in read_csv("09 Map_Export.csv")}
     year_by_id = {
-        (row.get("UniqueID") or "").strip(): (
-            int(n) if (n := number(row.get("YearBuilt"))) is not None else None
-        )
+        (row.get("UniqueID") or "").strip(): building_year(row)
         for row in read_csv("10 YearBuilt.csv")
         if (row.get("UniqueID") or "").strip()
     }
@@ -461,8 +580,26 @@ def main() -> None:
         "ReplacementCost",
     )
 
-    score_factors_by_id, score_values_by_id, composite_year_by_id = load_building_score_workbook()
-    year_by_id.update(composite_year_by_id)
+    composite_inputs = load_composite_inputs()
+    fci_by_id = {
+        (row.get("UniqueID") or "").strip(): number(row.get("FCI")) for row in decision
+    }
+    score_factors_by_id, score_by_id = composite_building_scores(
+        composite_inputs,
+        fci_by_id,
+        year_by_id,
+        datetime.now().year,
+    )
+    score_values_by_id = {
+        uid: {
+            "fci": None,
+            "eui": inputs["eui"],
+            "age": None,
+            "survey": inputs["survey"],
+            "workOrder": inputs["workOrder"],
+        }
+        for uid, inputs in composite_inputs.items()
+    }
     universe = set(score_factors_by_id)
     if len(universe) != 122:
         print(f"Warning: composite universe has {len(universe)} schools, expected 122")
@@ -619,13 +756,19 @@ def main() -> None:
             ),
             "siteCapacity": yes_no(row.get("SiteCapacity")),
             "squareFt": number(row.get("SquareFt")),
-            "buildingScore": number(row.get("BuildingScore")),
+            "buildingScore": score_by_id.get(uid),
             "buildingScoreFactors": score_factors_by_id.get(
                 uid, EMPTY_BUILDING_SCORE_FACTORS
             ),
-            "buildingScoreValues": score_values_by_id.get(
-                uid, EMPTY_BUILDING_SCORE_FACTORS
-            ),
+            "buildingScoreValues": {
+                **score_values_by_id.get(uid, EMPTY_BUILDING_SCORE_FACTORS),
+                "fci": number(row.get("FCI")),
+                "age": (
+                    None
+                    if year_by_id.get(uid) is None
+                    else datetime.now().year - year_by_id[uid]
+                ),
+            },
             "recentInvestments": yes_no(row.get("RecentInvestments")),
             "attendanceAreaEnrollment": number(row.get("AttendanceAreaEnrollment")),
             "nonPkAttendanceAreaEnrollment": number(
@@ -720,8 +863,7 @@ def main() -> None:
     }
 
     schools_path = os.path.join(OUT, "schools.json")
-    with open(schools_path, "w", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, separators=(",", ":"))
+    write_json(schools_path, payload)
 
     geo_src = os.path.join(SRC, "08 ArticulationArea.geojson")
     geo_dst = os.path.join(OUT, "articulation-areas.geojson")
@@ -741,8 +883,7 @@ def main() -> None:
             for feat in geo.get("features", [])
         ],
     }
-    with open(geo_dst, "w", encoding="utf-8") as handle:
-        json.dump(slim, handle, ensure_ascii=False, separators=(",", ":"))
+    write_json(geo_dst, slim)
 
     from shapely.geometry import mapping, shape
     from shapely.ops import unary_union
@@ -769,8 +910,7 @@ def main() -> None:
         ],
     }
     district_dst = os.path.join(OUT, "district-boundary.geojson")
-    with open(district_dst, "w", encoding="utf-8") as handle:
-        json.dump(district_geo, handle, ensure_ascii=False, separators=(",", ":"))
+    write_json(district_dst, district_geo)
 
     matched = sum(1 for school in schools if school["enrollmentByYear"])
     pk_matched = sum(1 for school in schools if school["pkEnrollmentByYear"])

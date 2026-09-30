@@ -4,7 +4,7 @@ import { colorForLevel } from "../lib/theme";
 import type { School } from "../types";
 
 export const BUILDING_SCORE_TIP =
-  "A score from 0 to 100 that combines five building measures: condition (30%), energy use (15%), age (25%), a facility survey (10%), and work-order cost per square foot (20%).";
+  "A score from 0 to 100 that combines five building measures: condition (30%), energy use (15%), age (25%), a facility survey (10%), and work-order cost per square foot (20%). If a measure is missing, its weight is shared across the measures that have data.";
 
 export function InfographicPlaceholder({
   label,

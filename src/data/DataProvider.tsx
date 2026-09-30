@@ -36,21 +36,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([loadExplorerData(), loadArticulationAreas(), loadDistrictBoundary()])
-      .then(([explorer, areas, boundary]) => {
+    let loaded = false;
+
+    async function load(version?: number) {
+      try {
+        const [explorer, areas, boundary] = await Promise.all([
+          loadExplorerData(version),
+          loadArticulationAreas(version),
+          loadDistrictBoundary(version),
+        ]);
         if (cancelled) return;
         const restricted = restrictExplorerData(explorer);
         setData(restricted);
         setArticulation(areas);
         setDistrictBoundary(boundary);
-        setFilters(defaultFilters(restricted));
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
+        setFilters((current) => current ?? defaultFilters(restricted));
+        setError(null);
+        loaded = true;
+      } catch (err: unknown) {
+        if (cancelled || loaded) return;
         setError(err instanceof Error ? err.message : "Unable to load data");
-      });
+      }
+    }
+
+    void load();
+    const onUpdate = (payload: { at?: number }) => {
+      void load(payload?.at);
+    };
+    import.meta.hot?.on("facility-data", onUpdate);
     return () => {
       cancelled = true;
+      import.meta.hot?.off("facility-data", onUpdate);
     };
   }, []);
 
