@@ -18,8 +18,15 @@ const FACTORS: Array<{
   higherIsBetter: boolean;
   /** Raw value that fills the bar. Larger values clamp to full width. */
   max: number;
+  tip?: string;
 }> = [
-  { id: "fci", label: "Facilities Condition Index (FCI)", higherIsBetter: false, max: 0.25 },
+  {
+    id: "fci",
+    label: "Facilities Condition Index (FCI)",
+    higherIsBetter: false,
+    max: 0.25,
+    tip: "FCI values include inflation adjustments to reflect costs in current dollars",
+  },
   { id: "eui", label: "Energy Use Intensity (EUI) (kBTU / SF)", higherIsBetter: false, max: 100 },
   { id: "age", label: "Building Age (Years)", higherIsBetter: false, max: 100 },
   { id: "survey", label: "Survey Score (1–5)", higherIsBetter: true, max: 5 },
@@ -196,6 +203,7 @@ export function BuildingScoreGauge({
             <div className="building-score-factor" key={factor.id}>
               <span className="building-score-factor-label">
                 {factor.label}
+                {factor.tip ? <HelpTip label={factor.label}>{factor.tip}</HelpTip> : null}
                 <span className="building-score-factor-direction">
                   {factor.higherIsBetter ? "Higher is better ↑" : "Lower is better ↓"}
                 </span>

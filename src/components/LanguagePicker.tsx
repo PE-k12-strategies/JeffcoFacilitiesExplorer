@@ -4,20 +4,15 @@ import { HelpTip } from "./Ui";
 export const TRANSLATE_LANGUAGES = [
   { code: "en", label: "English" },
   { code: "es", label: "Español" },
-  { code: "ar", label: "العربية" },
   { code: "vi", label: "Tiếng Việt" },
-  { code: "fr", label: "Français" },
-  { code: "ko", label: "한국어" },
-  { code: "uk", label: "Українська" },
   { code: "ru", label: "Русский" },
-  { code: "sw", label: "Kiswahili" },
-  { code: "ne", label: "नेपाली" },
   { code: "zh-CN", label: "中文" },
 ] as const;
 
 function readGoogTrans(): string {
   const match = document.cookie.match(/(?:^|;\s*)googtrans=\/en\/([^;]+)/);
-  return match?.[1] ?? "en";
+  const lang = match?.[1] ?? "en";
+  return TRANSLATE_LANGUAGES.some((item) => item.code === lang) ? lang : "en";
 }
 
 function writeGoogTrans(lang: string) {
@@ -56,7 +51,10 @@ export function LanguagePicker() {
   const [lang, setLang] = useState("en");
 
   useEffect(() => {
-    setLang(readGoogTrans());
+    const stored = document.cookie.match(/(?:^|;\s*)googtrans=\/en\/([^;]+)/)?.[1];
+    const current = readGoogTrans();
+    if (stored && stored !== current) writeGoogTrans("en");
+    setLang(current);
 
     window.googleTranslateElementInit = () => {
       if (!window.google?.translate?.TranslateElement) return;

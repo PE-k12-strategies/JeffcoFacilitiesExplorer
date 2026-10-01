@@ -1088,6 +1088,11 @@ a.link-strong {
   line-height: 1.2;
 }
 
+.building-score-factor-label .help-tip {
+  margin-left: 4px;
+  vertical-align: -2px;
+}
+
 .building-score-factor-direction {
   margin-left: 6px;
   color: var(--muted);
