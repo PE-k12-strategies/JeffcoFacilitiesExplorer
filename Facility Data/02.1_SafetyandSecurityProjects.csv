@@ -189,8 +189,8 @@ SOLD-5,CO-1420-0148,Allendale ES,02.1_SafetyandSecurityProjects,Camera,1,Infrast
 ,,FDCCS network,02.1_SafetyandSecurityProjects,POE Switch,1,Infrastructure costs April 2026,POE Switch,3,3605,10815,FDCCS network
 778,CO-1420-2946,Fitzmorris ES,02.1_SafetyandSecurityProjects,Camera,1,Infrastructure costs April 2026,Axis,1,1600,1600,Fitzmorris
 778,CO-1420-2946,Fitzmorris ES,02.1_SafetyandSecurityProjects,Door Phone,1,Infrastructure costs April 2026,8028 g1 (2),1,1300,1300,Fitzmorris
-501,CO-1420-5892,Fletcher Miller Special School,02.1_SafetyandSecurityProjects,Camera,1,Infrastructure costs April 2026,Av H4-3M,4,2250,9000,Fletcher Miller
-501,CO-1420-5892,Fletcher Miller Special School,02.1_SafetyandSecurityProjects,POE Switch,1,Infrastructure costs April 2026,POE Switch,2,3605,7210,Fletcher Miller
+501,CO-1420-5892,Fletcher Miller Special School,02.1_SafetyandSecurityProjects,Camera,1,Infrastructure costs April 2026,Av H4-3M,0,2250,0,Fletcher Miller
+501,CO-1420-5892,Fletcher Miller Special School,02.1_SafetyandSecurityProjects,POE Switch,1,Infrastructure costs April 2026,POE Switch,0,3605,0,Fletcher Miller
 116,CO-1420-3025,Foothills ES,02.1_SafetyandSecurityProjects,Camera,1,Infrastructure costs April 2026,Av H4,6,1550,9300,Foothills
 116,CO-1420-3025,Foothills ES,02.1_SafetyandSecurityProjects,Camera,1,Infrastructure costs April 2026,Av H4-3M,8,2250,18000,Foothills
 116,CO-1420-3025,Foothills ES,02.1_SafetyandSecurityProjects,Camera,1,Infrastructure costs April 2026,Axis,1,1600,1600,Foothills
