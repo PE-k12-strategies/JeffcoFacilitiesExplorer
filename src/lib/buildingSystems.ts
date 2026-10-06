@@ -1,5 +1,8 @@
 export const SAFETY_SECURITY_SYSTEM = "Safety and Security";
 
+export const SAFETY_NEEDS_NOTE =
+  "Safety and security needs are not part of the 2025-26 Facilities Condition Assessment Summary of Findings. These costs were provided separately by the Jeffco Public Schools Department of School Safety & Security and include items such as security cameras and door entry phones. Because these items support the safety of students and staff, they are shown as Priority 1. This placement reflects the district's emphasis on school safety and is not a priority rating from the facility condition assessment.";
+
 export const BUILDING_SYSTEM_TIPS: Record<string, string> = {
   Roofing:
     "The roof, insulation, and waterproofing that keep rain and snow out.",

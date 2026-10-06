@@ -457,18 +457,21 @@ function SchoolProfile({ school }: { school: School }) {
             peerAverage(peers, (item) => item.needs.total),
             peerGroupNeedsPhrase(school),
           )}
+          footer={
+            school.hasMapPoint ? (
+              <p>
+                <Link className="btn" to={`/map?school=${schoolSlug(school.id)}`}>
+                  View on the map
+                </Link>
+              </p>
+            ) : (
+              <p className="footnote">
+                This site does not have map coordinates in the current GIS export.
+              </p>
+            )
+          }
         />
       </section>
-
-      {school.hasMapPoint ? (
-        <p>
-          <Link className="btn" to={`/map?school=${schoolSlug(school.id)}`}>
-            View on the map
-          </Link>
-        </p>
-      ) : (
-        <p className="footnote">This site does not have map coordinates in the current GIS export.</p>
-      )}
     </div>
   );
 }

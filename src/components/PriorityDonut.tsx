@@ -67,10 +67,12 @@ export function PriorityDonut({
   totals,
   selected,
   onToggle,
+  markPriority1 = false,
 }: {
   totals: Record<PriorityScore, number>;
   selected: PriorityScore[];
   onToggle: (score: PriorityScore) => void;
+  markPriority1?: boolean;
 }) {
   const slices = PRIORITY_SCORES.map((score) => ({
     score,
@@ -187,7 +189,10 @@ export function PriorityDonut({
                   style={on ? { backgroundColor: PRIORITY_COLORS[score] } : undefined}
                   aria-hidden="true"
                 />
-                <span className="priority-donut-key-name">Priority {score}</span>
+                <span className="priority-donut-key-name">
+                  Priority {score}
+                  {score === "1" && markPriority1 ? "*" : ""}
+                </span>
                 <span className="priority-donut-key-share">
                   {slice ? formatPercent(slice.share) : "—"}
                 </span>

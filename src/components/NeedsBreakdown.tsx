@@ -1,6 +1,10 @@
 import { useState, type ReactNode } from "react";
 import { formatMoney, formatMoneyExact } from "../lib/format";
-import { buildingSystemTip, SAFETY_SECURITY_SYSTEM } from "../lib/buildingSystems";
+import {
+  buildingSystemTip,
+  SAFETY_NEEDS_NOTE,
+  SAFETY_SECURITY_SYSTEM,
+} from "../lib/buildingSystems";
 import { PRIORITY_SCORES, needsForPriorities, priorityTotals } from "../lib/needs";
 import type { PriorityScore, SchoolNeeds } from "../types";
 import { BuildingSystemIcon } from "./BuildingSystemIcon";
@@ -49,6 +53,7 @@ function BarGroup({
             <div className="bar-row-body">
               <span className="bar-row-label">
                 {label}
+                {label === SAFETY_SECURITY_SYSTEM ? "*" : ""}
                 {withMeta ? (
                   <HelpTip label={label}>{buildingSystemTip(label)}</HelpTip>
                 ) : null}
@@ -72,10 +77,12 @@ export function NeedsBreakdown({
   needs,
   compare,
   intro,
+  footer,
 }: {
   needs: SchoolNeeds;
   compare?: ReactNode;
   intro?: ReactNode;
+  footer?: ReactNode;
 }) {
   const [priorities, setPriorities] = useState<PriorityScore[]>([...PRIORITY_SCORES]);
   const filtered = needsForPriorities(needs, priorities);
@@ -89,11 +96,13 @@ export function NeedsBreakdown({
   const technology = entries(filtered.technology);
   const food = entries(filtered.food);
   const totals = priorityTotals(needs);
+  const safetyAmount = filtered.safetyTotal;
   const donut = (
     <PriorityDonut
       totals={totals}
       selected={priorities}
       onToggle={(score) => setPriorities(togglePriority(priorities, score))}
+      markPriority1={needs.safetyTotal > 0}
     />
   );
 
@@ -101,11 +110,20 @@ export function NeedsBreakdown({
     <>
       <p>
         Identified facility needs total{" "}
-        <strong>{formatMoneyExact(filtered.total)}</strong> in the current planning
-        snapshot.
+        <strong>{formatMoneyExact(filtered.total)}</strong>
+        {" in the current planning snapshot"}
+        {safetyAmount > 0 ? (
+          <>
+            {", including "}
+            <strong>{formatMoneyExact(safetyAmount)}</strong>
+            {" in district-identified safety and security needs.*"}
+          </>
+        ) : (
+          "."
+        )}
         {compare ? <> This is {compare}.</> : null}{" "}
-        These are planning-level replacement estimates, not a budget or a
-        construction schedule.
+        These are planning-level cost estimates, not a budget or a construction
+        schedule.
       </p>
       {intro}
     </>
@@ -134,6 +152,11 @@ export function NeedsBreakdown({
     </>
   );
 
+  const note =
+    needs.safetyTotal > 0 ? (
+      <p className="footnote needs-safety-note">*{SAFETY_NEEDS_NOTE}</p>
+    ) : null;
+
   if (filtered.total <= 0) {
     return (
       <div className="needs-layout">
@@ -145,6 +168,10 @@ export function NeedsBreakdown({
           </p>
         </div>
         {donut}
+        <div className="needs-layout-bars">
+          {footer}
+          {note}
+        </div>
       </div>
     );
   }
@@ -153,7 +180,11 @@ export function NeedsBreakdown({
     <div className="needs-layout">
       <div className="needs-layout-lead">{lead}</div>
       {donut}
-      <div className="needs-layout-bars">{bars}</div>
+      <div className="needs-layout-bars">
+        {bars}
+        {footer}
+        {note}
+      </div>
     </div>
   );
 }

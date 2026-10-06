@@ -1514,6 +1514,12 @@ a.link-strong {
   color: var(--muted);
 }
 
+.needs-safety-note {
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .app-footer {
   background: var(--navy);
   color: #e8eef3;
